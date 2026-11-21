@@ -1,0 +1,988 @@
+
+!DOCTYPE html>
+<html lang="pt<-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GAMEHUB 4.0</title>
+
+<style>
+*{box-sizing:border-box}
+body{
+ margin:0;background:#10101c;color:white;
+ font-family:Arial,sans-serif;
+ padding-bottom:85px;
+}
+:root{
+ --bg:#10101c;--panel:#19192b;
+ --card:#222238;--border:#393952;
+ --purple:#8865ed;--muted:#aaa9c0;
+}
+header{
+ background:var(--panel);padding:17px 20px;
+ border-bottom:1px solid var(--border);
+ position:sticky;top:0;z-index:5;
+}
+.logo{font-size:26px;font-weight:bold;color:#a78bfa}
+.sub{color:var(--muted)}
+h2{font-size:25px}
+button{
+ border:0;border-radius:12px;padding:13px;
+ background:var(--purple);color:white;
+ font-weight:bold;font-size:15px;cursor:pointer;
+}
+input{
+ width:100%;padding:14px;margin:7px 0 12px;
+ border:1px solid #494966;border-radius:12px;
+ background:var(--card);color:white;font-size:16px;
+}
+button:active{opacity:.8}
+.page{display:none;padding:20px;max-width:1100px;margin:auto}
+.page.active{display:block}
+.panel,.game-card,.community-card{
+ background:var(--panel);border:1px solid var(--border);
+ border-radius:18px;padding:18px;margin:15px 0;
+}
+.primary{width:100%;margin:8px 0}
+.secondary{background:#393952}
+.grid{
+ display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+ gap:12px;
+}
+.game-card h3{font-size:20px}
+.game-card p{color:var(--muted)}
+.bottom-nav{
+ position:fixed;bottom:0;left:0;right:0;z-index:10;
+ display:flex;justify-content:space-around;
+ background:#19192b;border-top:1px solid var(--border);
+ padding:12px 3px;
+}
+.bottom-nav button{
+ background:transparent;padding:7px 3px;
+ font-size:12px;flex:1;color:white;
+}
+.bottom-nav button span{display:block;font-size:23px;margin-bottom:4px}
+.bottom-nav button.active{color:#b49aff}
+
+/* SERVIDOR */
+.server-layout{
+ display:grid;
+ grid-template-columns:65px 210px minmax(0,1fr);
+ gap:10px;
+ min-height:550px;
+}
+.server-rail,.channel-sidebar,.chat-area{
+ background:var(--panel);border:1px solid var(--border);
+ border-radius:17px;padding:10px;min-width:0;
+}
+.server-rail{
+ display:flex;flex-direction:column;align-items:center;gap:10px;
+}
+.server-button{
+ width:45px;height:45px;padding:5px;
+ border-radius:15px;background:#303047;font-size:22px;
+}
+.server-button.active{background:var(--purple)}
+.channel-sidebar h3{font-size:16px}
+.channel{
+ display:block;width:100%;text-align:left;
+ background:transparent;color:var(--muted);
+ margin:5px 0;padding:12px;
+ overflow-wrap:anywhere;
+}
+.channel.active{background:#393052;color:white}
+.chat-area{
+ display:flex;flex-direction:column;
+ min-height:550px;
+}
+.chat-header{
+ border-bottom:1px solid var(--border);
+ padding:8px 4px 14px;
+}
+.messages{
+ flex:1;min-height:250px;max-height:430px;
+ overflow-y:auto;display:flex;flex-direction:column;
+ gap:12px;padding:15px 2px;
+}
+.message{
+ max-width:85%;background:#292942;
+ border-radius:14px;padding:12px;
+ overflow-wrap:anywhere;
+}
+.message.mine{align-self:flex-end;background:#49347e}
+.message strong{color:#c7b4ff}
+.message p{white-space:pre-wrap;margin:8px 0}
+.message small{color:#c5bfdc}
+.send{display:flex;gap:8px;align-items:center}
+.send input{min-width:0;margin:0}
+.send button{font-size:21px;padding:13px 18px}
+.notice{
+ background:#292942;color:#d0c8e9;
+ padding:12px;border-radius:12px;
+ line-height:1.5;font-size:14px;margin:12px 0;
+}
+.hidden{display:none!important}
+.invite-result{
+ overflow-wrap:anywhere;color:#c7b4ff;
+ margin:12px 0;
+}
+.small{font-size:13px;color:var(--muted)}
+.back{background:#393952;margin-bottom:12px}
+
+@media(max-width:650px){
+ .page{padding:13px}
+ .grid{grid-template-columns:1fr 1fr}
+ .server-layout{
+  display:flex;flex-direction:column;gap:9px;
+  min-height:0;
+ }
+ .server-rail{
+  flex-direction:row;overflow-x:auto;
+  justify-content:flex-start;min-height:65px;
+ }
+ .channel-sidebar{padding:10px}
+ .channel-sidebar h3{margin:2px 0 7px}
+ #channelList{
+  display:flex;gap:7px;overflow-x:auto;
+ }
+ .channel{
+  width:auto;min-width:max-content;margin:0;
+ }
+ .channel-sidebar .primary{width:auto;margin:8px 0 0}
+ .chat-area{min-height:440px}
+ .messages{min-height:230px;max-height:350px}
+ .logo{font-size:23px}
+}
+@media(max-width:360px){
+ .grid{grid-template-columns:1fr}
+ .send button{padding:12px}
+}
+.action-row{
+ display:flex;
+ gap:8px;
+ flex-wrap:wrap;
+ margin-top:12px;
+}
+.action-row button{
+ flex:1;
+ min-width:100px;
+}
+.danger{background:#a83250}
+.role-tag{
+ display:inline-block;
+ padding:5px 9px;
+ border-radius:8px;
+ background:#393052;
+ color:#c7b4ff;
+ font-size:12px;
+ margin:4px;
+}
+.member-card{
+ background:var(--card);
+ padding:12px;
+ border-radius:12px;
+ margin:8px 0;
+}
+.confirm-box{
+ background:#211735;
+ border:2px solid #8957e5;
+ border-radius:15px;
+ padding:20px;
+ text-align:center;
+ color:white;
+ position:fixed;
+ top:50%;
+ left:50%;
+ transform:translate(-50%,-50%);
+ z-index:9999;
+ width:85%;
+ max-width:320px;
+ box-shadow:0 0 25px #000;
+}
+
+.confirm-box button{
+ padding:12px;
+ margin:8px 4px;
+ border:0;
+ border-radius:8px;
+ color:white;
+ font-weight:bold;
+}
+
+.confirm-yes{background:#c03955;}
+.confirm-no{background:#555;}
+</style>
+</head>
+
+<body>
+
+<header>
+ <div class="logo">🎮 GAMEHUB</div>
+ <div class="sub">Sua comunidade gamer começa aqui!</div>
+</header>
+
+<!-- INÍCIO -->
+<section id="home" class="page active">
+ <h2>Salve, gamer! 👾</h2>
+ <p class="sub">Bem-vindo ao universo GAMEHUB.</p>
+
+ <div class="panel">
+  <h2>🔥 Jogos populares</h2>
+  <div class="grid">
+   <div class="game-card">
+    <h3>🧱 Roblox</h3>
+    <p>Entre na comunidade!</p>
+    <button onclick="irComunidades()">Entrar</button>
+   </div>
+   <div class="game-card">
+    <h3>🔥 Free Fire</h3>
+    <p>Encontre seu squad!</p>
+    <button onclick="irComunidades()">Entrar</button>
+   </div>
+   <div class="game-card">
+    <h3>⛏️ Minecraft</h3>
+    <p>Explore com amigos!</p>
+    <button onclick="irComunidades()">Entrar</button>
+   </div>
+   <div class="game-card">
+    <h3>🎮 Outros</h3>
+    <p>Descubra jogos!</p>
+    <button onclick="irComunidades()">Entrar</button>
+   </div>
+  </div>
+ </div>
+
+ <div class="panel">
+  <h2>🌎 Comunidades</h2>
+  <p class="sub">Conheça servidores e faça novas amizades.</p>
+  <button class="primary" onclick="irComunidades()">Ver comunidades</button>
+ </div>
+</section>
+
+<!-- JOGOS -->
+<section id="games" class="page">
+ <h2>🎮 Jogos</h2>
+ <p class="sub">Escolha seu jogo favorito.</p>
+ <div class="grid">
+  <div class="game-card"><h3>🧱 Roblox</h3><button onclick="irComunidades()">Comunidades</button></div>
+  <div class="game-card"><h3>🔥 Free Fire</h3><button onclick="irComunidades()">Comunidades</button></div>
+  <div class="game-card"><h3>⛏️ Minecraft</h3><button onclick="irComunidades()">Comunidades</button></div>
+  <div class="game-card"><h3>🎮 Outros</h3><button onclick="irComunidades()">Comunidades</button></div>
+ </div>
+</section>
+
+<!-- COMUNIDADES -->
+<section id="communities" class="page">
+ <h2>🌎 Comunidades</h2>
+ <p class="sub">Crie seu servidor ou entre em um existente.</p>
+
+ <div class="panel">
+  <button class="primary" onclick="novoServidor()">＋ Criar comunidade</button>
+  <h3>🔗 Entrar com convite</h3>
+  <input id="inviteInput" placeholder="Cole o código do convite aqui">
+  <button class="primary" onclick="entrarConvite()">Entrar no servidor</button>
+ </div>
+
+ <h2>Seus servidores</h2>
+ <div id="communityList"></div>
+</section>
+
+<!-- SERVIDOR -->
+<section id="serverPage" class="page">
+ <button class="back" onclick="irComunidades()">← Comunidades</button>
+ <h2 id="serverPageTitle">Servidor</h2>
+ <p class="sub">Escolha um canal para conversar.</p>
+
+ <div class="server-layout">
+  <aside class="server-rail">
+   <div id="serverList"></div>
+   <button class="server-button" onclick="novoServidor()">＋</button>
+  </aside>
+
+  <aside class="channel-sidebar">
+   <h3 id="sideServerName">CANAIS</h3>
+   <p class="small">CANAIS DE TEXTO</p>
+   <div id="channelList"></div>
+   <button class="primary" onclick="novoCanal()">＋ Canal</button>
+   <button class="primary secondary" onclick="abrirConvites()">🔗 Convites</button>
+ <button class="primary secondary" onclick="abrirMembros()">👥 Gerenciar membros</button> </aside>
+<button class="primary secondary" onclick="abrirMembros()">👥 Gerenciar membros</button><button class="primary secondary" onclick="editarComunidade()">⚙️ Editar comunidade</button>
+<button class="primary secondary" onclick="abrirCargos()">👑 Gerenciar cargos</button>
+<button class="primary danger" onclick="apagarComunidade()">🗑️ Apagar comunidade</button>
+<button class="primary danger" onclick="excluirCanal()">✖ Excluir canal</button>
+
+
+  <main class="chat-area">
+   <div class="chat-header">
+    <h2 id="channelTitle"># geral</h2>
+    <p class="sub" id="chatSubtitle">Canal da comunidade</p>
+   </div>
+
+   <div class="notice">
+    🛡️ Respeite os jogadores. Nunca compartilhe senhas,
+    endereço, telefone ou dados pessoais.
+   </div>
+
+   <div class="messages" id="messages"></div>
+
+   <form class="send" onsubmit="enviar(event)">
+    <input id="messageInput" maxlength="300"
+     placeholder="Escreva uma mensagem..." autocomplete="off">
+    <button type="submit">➤</button>
+   </form>
+  </main>
+ </div>
+</section>
+
+<!-- CONVITES -->
+<section id="invitePage" class="page">
+ <button class="back" onclick="voltarServidor()">← Voltar ao servidor</button>
+ <h2>🔗 Convites</h2>
+ <div class="panel">
+  <h3>Criar novo convite</h3>
+  <p class="sub">Escolha a validade do convite.</p>
+  <select id="inviteDays" style="width:100%;padding:13px;background:#222238;color:white;border-radius:10px">
+   <option value="1">1 dia</option>
+   <option value="7">7 dias</option>
+   <option value="15">15 dias</option>
+   <option value="30" selected>30 dias</option>
+  </select>
+  <button class="primary" onclick="gerarConvite()">＋ Gerar convite</button>
+  <div id="inviteResult" class="invite-result"></div>
+  <button class="primary secondary" onclick="mostrarConvites()">Ver meus convites</button>
+  <div id="inviteList"></div>
+ </div>
+ <div class="notice">
+  Atenção: nesta versão os convites são demonstrações locais.
+  Para funcionarem entre aparelhos diferentes, precisaremos
+  conectar um banco de dados online.
+ </div>
+</section>
+
+<!-- PERFIL -->
+<section id="profile" class="page">
+ <h2>👤 Meu perfil</h2>
+ <div class="panel">
+  <h3>Seu apelido</h3>
+  <input id="profileName" maxlength="20" placeholder="Digite seu apelido">
+  <button class="primary" onclick="salvarPerfil()">Salvar perfil</button>
+ </div>
+</section>
+
+<nav class="bottom-nav">
+ <button class="active" onclick="navegar('home',this)"><span>🏠</span>Início</button>
+ <button onclick="navegar('games',this)"><span>🎮</span>Jogos</button>
+ <button onclick="navegar('communities',this)"><span>🌎</span>Comunidades</button>
+ <button onclick="navegar('profile',this)"><span>👤</span>Perfil</button>
+</nav>
+
+<script>
+const STORAGE="gamehub_40_fixed";
+
+let data={};
+try{
+ data=JSON.parse(localStorage.getItem(STORAGE))||{};
+}catch(e){data={};}
+
+if(!Array.isArray(data.servers))data.servers=[];
+if(!data.messages)data.messages={};
+if(!Array.isArray(data.invites))data.invites=[];
+
+if(!data.servers.length){
+ data.servers.push({
+  id:"roblox",
+  name:"Roblox Brasil",
+  icon:"🧱",
+  game:"Roblox",
+  channels:[
+   {id:"geral",name:"geral"},
+   {id:"memes",name:"memes"},
+   {id:"novidades",name:"novidades"}
+  ]
+ });
+}
+
+let currentServer=null;
+let currentChannel=null;
+let previousServer=null;
+
+function save(){
+ localStorage.setItem(STORAGE,JSON.stringify(data));
+}
+
+function navegar(id,btn){
+ document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+ document.getElementById(id).classList.add("active");
+ document.querySelectorAll(".bottom-nav button").forEach(b=>b.classList.remove("active"));
+ if(btn)btn.classList.add("active");
+ if(id==="communities")renderComunidades();
+}
+
+function irComunidades(){
+ navegar("communities",document.querySelectorAll(".bottom-nav button")[2]);
+}
+
+function novoServidor(){
+ let nome=prompt("Nome da comunidade:");
+ if(!nome||nome.trim().length<2)return;
+
+ let server={
+  id:"s_"+Date.now(),
+  name:nome.trim().slice(0,35),
+  icon:"🎮",
+  members:[],
+  roles:[],
+  channels:[
+   {id:"geral",name:"geral"}
+  ]
+ };
+
+ data.servers.push(server);
+ save();
+ selecionarServidor(server.id);
+}
+
+function selecionarServidor(id){
+ let s=data.servers.find(x=>x.id===id);
+ if(!s)return;
+
+ currentServer=s;
+ if(!currentChannel||!s.channels.some(c=>c.id===currentChannel)){
+  currentChannel=s.channels[0]?.id||null;
+ }
+ renderServidor();
+ document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+ document.getElementById("serverPage").classList.add("active");
+ if(currentChannel)abrirCanal(currentChannel);
+}
+
+function renderServidor(){
+ if(!currentServer)return;
+document.getElementById("serverPageTitle").textContent=currentServer.name;
+ document.getElementById("sideServerName").textContent=currentServer.name;
+ let list=document.getElementById("serverList");
+ list.innerHTML="";
+
+ data.servers.forEach(s=>{
+  let b=document.createElement("button");
+  b.className="server-button"+(s.id===currentServer.id?" active":"");
+  b.textContent=s.icon;
+  b.title=s.name;
+  b.onclick=()=>selecionarServidor(s.id);
+  list.appendChild(b);
+ });
+
+ let channels=document.getElementById("channelList");
+ channels.innerHTML="";
+ currentServer.channels.forEach(c=>{
+  let b=document.createElement("button");
+  b.className="channel"+(c.id===currentChannel?" active":"");
+  b.textContent="# "+c.name;
+  b.onclick=()=>abrirCanal(c.id);
+  channels.appendChild(b);
+ });
+}
+
+function renderComunidades(){
+ let list=document.getElementById("communityList");
+ list.innerHTML="";
+
+ if(!data.servers.length){
+  list.textContent="Nenhum servidor ainda. Crie sua comunidade!";
+  return;
+ }
+
+ data.servers.forEach(s=>{
+  let card=document.createElement("div");
+  card.className="community-card";
+
+  let title=document.createElement("h3");
+  title.textContent=s.icon+" "+s.name;
+
+  let info=document.createElement("p");
+  info.className="sub";
+  info.textContent=s.game||"Comunidade GAMEHUB";
+
+  let button=document.createElement("button");
+  button.textContent="💬 Abrir servidor";
+  button.onclick=()=>selecionarServidor(s.id);
+
+  card.append(title,info,button);
+  list.appendChild(card);
+ });
+}
+
+function novoCanal(){
+ if(!currentServer)return;
+ let nome=prompt("Nome do novo canal:");
+ if(!nome||nome.trim().length<2)return;
+
+ let limpo=nome.trim().toLowerCase()
+ .replace(/[^a-z0-9-_]/g,"-").slice(0,30);
+
+ if(currentServer.channels.some(c=>c.name===limpo)){
+  alert("Esse canal já existe!");
+  return;
+ }
+
+ let id="c_"+Date.now();
+ currentServer.channels.push({id,name:limpo});
+ save();
+ renderServidor();
+ abrirCanal(id);
+}
+
+function chave(){
+ return currentServer.id+"_"+currentChannel;
+}
+
+function abrirCanal(id){
+ if(!currentServer)return;
+ let canal=currentServer.channels.find(c=>c.id===id);
+ if(!canal)return;
+
+ currentChannel=id;
+ document.getElementById("channelTitle").textContent="# "+canal.name;
+ document.getElementById("chatSubtitle").textContent=currentServer.name+" • Canal de texto";
+
+ renderServidor();
+ renderMensagens();
+}
+
+function renderMensagens(){
+ let box=document.getElementById("messages");
+ box.innerHTML="";
+ let lista=data.messages[chave()]||[];
+
+ if(!lista.length){
+  let p=document.createElement("p");
+  p.className="sub";
+  p.textContent="Nenhuma mensagem ainda. Comece a conversa!";
+  box.appendChild(p);
+ }
+
+ lista.forEach(m=>{
+  let div=document.createElement("div");
+  div.className="message"+(m.user===getNick()?" mine":"");
+
+  let name=document.createElement("strong");
+  name.textContent=m.user;
+
+  let text=document.createElement("p");
+  text.textContent=m.text;
+
+  let time=document.createElement("small");
+  time.textContent=m.time;
+
+  div.append(name,text,time);
+  box.appendChild(div);
+ });
+ box.scrollTop=box.scrollHeight;
+}
+
+function getNick(){
+ return (data.nickname||"Jogador").trim();
+}
+
+function enviar(e){
+ e.preventDefault();
+ if(!currentServer||!currentChannel)return;
+
+ let campo=document.getElementById("messageInput");
+ let texto=campo.value.trim();
+ if(!texto)return;
+
+ let key=chave();
+ if(!data.messages[key])data.messages[key]=[];
+
+ data.messages[key].push({
+  user:getNick(),
+  text:texto.slice(0,300),
+  time:new Date().toLocaleTimeString("pt-BR",{
+   hour:"2-digit",minute:"2-digit"
+  })
+ });
+
+ save();
+ campo.value="";
+ renderMensagens();
+}
+
+// PERFIL
+
+function salvarPerfil(){
+ let nome=document.getElementById("profileName").value.trim();
+ if(nome.length<2){
+  alert("Digite um apelido com pelo menos 2 letras.");
+  return;
+ }
+ data.nickname=nome.slice(0,20);
+ save();
+ alert("Perfil salvo!");
+}
+
+// CONVITES
+
+function abrirConvites(){
+ if(!currentServer)return;
+ previousServer=currentServer.id;
+ document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+ document.getElementById("invitePage").classList.add("active");
+ document.getElementById("inviteResult").textContent="";
+ mostrarConvites();
+}
+
+function voltarServidor(){
+ if(previousServer)selecionarServidor(previousServer);
+ else irComunidades();
+}
+
+function gerarConvite(){
+ if(!currentServer)return;
+
+ let codigo=Math.random().toString(36).substring(2,10).toUpperCase();
+ let dias=Number(document.getElementById("inviteDays").value);
+ let expira=Date.now()+dias*24*60*60*1000;
+
+ data.invites.push({
+  code:codigo,
+  serverId:currentServer.id,
+  expires:expira
+ });
+
+ save();
+
+ let result=document.getElementById("inviteResult");
+ result.textContent="Código: "+codigo+
+  " • Expira em "+new Date(expira).toLocaleDateString("pt-BR");
+
+ let copy=document.createElement("button");
+ copy.textContent="📋 Copiar código";
+ copy.onclick=()=>{
+  if(navigator.clipboard){
+   navigator.clipboard.writeText(codigo)
+    .then(()=>alert("Código copiado!"))
+    .catch(()=>alert("Código: "+codigo));
+  }else{
+   alert("Código: "+codigo);
+  }
+ };
+ result.appendChild(document.createElement("br"));
+ result.appendChild(copy);
+ mostrarConvites();
+}
+
+function mostrarConvites(){
+ let box=document.getElementById("inviteList");
+ box.innerHTML="";
+ let validos=data.invites.filter(i=>i.expires>Date.now());
+
+ if(!validos.length){
+  box.textContent="Nenhum convite ativo.";
+  return;
+ }
+
+ validos.forEach(i=>{
+  let s=data.servers.find(x=>x.id===i.serverId);
+  if(!s)return;
+  let p=document.createElement("p");
+  p.textContent=s.name+" • "+i.code+" • Até "+new Date(i.expires).toLocaleDateString("pt-BR");
+  box.appendChild(p);
+ });
+}
+
+function entrarConvite(){
+ let codigo=document.getElementById("inviteInput").value.trim().toUpperCase();
+ let convite=data.invites.find(i=>i.code===codigo&&i.expires>Date.now());
+
+ if(!convite){
+  alert("Convite inválido ou expirado.");
+  return;
+ }
+
+ let server=data.servers.find(s=>s.id===convite.serverId);
+ if(!server){
+  alert("Servidor não encontrado neste aparelho.");
+  return;
+ }
+
+ selecionarServidor(server.id);
+}
+
+
+function editarComunidade(){
+ if(!currentServer)return;
+
+ const servidor=currentServer;
+
+ const caixa=document.createElement("div");
+ caixa.className="confirm-box";
+
+ caixa.innerHTML=`
+  <h3>⚙️ Personalizar comunidade</h3>
+
+  <p>Nome atual: ${servidor.name}</p>
+
+  <input class="nome-comunidade"
+   placeholder="Novo nome da comunidade"
+   maxlength="35">
+
+  <p class="erro-nome"></p>
+
+  <button class="confirm-yes">💾 SALVAR</button>
+  <button class="confirm-no">CANCELAR</button>
+ `;
+
+ document.body.appendChild(caixa);
+
+ const campo=caixa.querySelector(".nome-comunidade");
+ const erro=caixa.querySelector(".erro-nome");
+
+ campo.style.cssText=
+  "width:90%;padding:12px;border-radius:8px;margin:10px 0;";
+
+ caixa.querySelector(".confirm-no").onclick=()=>{
+  caixa.remove();
+ };
+
+ caixa.querySelector(".confirm-yes").onclick=()=>{
+  const nome=campo.value.trim();
+
+  if(nome.length<2){
+   erro.textContent="Digite um nome com pelo menos 2 letras!";
+   return;
+  }
+
+  servidor.name=nome.slice(0,35);
+
+  save();
+  caixa.remove();
+
+  renderServidor();
+  renderComunidades();
+
+  alert("Comunidade personalizada!");
+ };
+}
+function apagarComunidade(){
+ if(!currentServer)return;
+
+ const caixa=document.createElement("div");
+ caixa.className="confirm-box";
+
+ caixa.innerHTML=`
+  <h3>Apagar comunidade?</h3>
+  <p>Tem certeza que deseja apagar esta comunidade?</p>
+  <button class="confirm-yes">SIM, APAGAR</button>
+  <button class="confirm-no">NÃO, CANCELAR</button>
+ `;
+
+ document.body.appendChild(caixa);
+
+ caixa.querySelector(".confirm-no").onclick=()=>{
+  caixa.remove();
+ };
+
+ caixa.querySelector(".confirm-yes").onclick=()=>{
+  const id=currentServer.id;
+
+  data.servers=data.servers.filter(s=>s.id!==id);
+
+  Object.keys(data.messages).forEach(key=>{
+   if(key.startsWith(id+"_"))delete data.messages[key];
+  });
+
+  data.invites=data.invites.filter(i=>i.serverId!==id);
+
+  currentServer=null;
+  currentChannel=null;
+
+  save();
+  caixa.remove();
+  renderComunidades();
+  irComunidades();
+
+  alert("Comunidade apagada!");
+ };
+  }
+function excluirCanal(){
+ if(!currentServer || !currentChannel)return;
+
+ if(currentChannel==="geral"){
+  alert("O canal geral não pode ser excluído.");
+  return;
+ }
+
+ if(!confirm("Deseja excluir este canal e suas mensagens?"))return;
+
+ const id=currentChannel;
+
+ currentServer.channels=
+  currentServer.channels.filter(c=>c.id!==id);
+
+ delete data.messages[currentServer.id+"_"+id];
+
+ currentChannel=currentServer.channels[0]?.id||null;
+
+ save();
+ renderServidor();
+
+ if(currentChannel)abrirCanal(currentChannel);
+
+ alert("Canal excluído!");
+}
+
+// CARGOS - PRIMEIRA VERSÃO LOCAL
+
+function abrirMembros(){
+ if(!currentServer)return;
+
+ const servidor=currentServer;
+
+ if(!Array.isArray(servidor.members)){
+  servidor.members=[];
+ }
+
+ if(!Array.isArray(servidor.roles)){
+  servidor.roles=[];
+ }
+
+ const caixa=document.createElement("div");
+ caixa.className="confirm-box";
+
+ caixa.innerHTML=`
+  <h3>👥 Gerenciar membros</h3>
+  <input class="membro-input" placeholder="Apelido do membro" maxlength="25">
+  <button class="confirm-yes">ADICIONAR</button>
+  <button class="confirm-no">FECHAR</button>
+  <div class="lista-membros"></div>
+ `;
+
+ document.body.appendChild(caixa);
+
+ const campo=caixa.querySelector(".membro-input");
+ const lista=caixa.querySelector(".lista-membros");
+
+ function atualizarLista(){
+  lista.innerHTML="";
+
+  servidor.members.forEach((m)=>{
+   const item=document.createElement("div");
+   item.className="member-card";
+
+   const nome=document.createElement("p");
+   nome.textContent=m.name;
+   item.appendChild(nome);
+
+   const select=document.createElement("select");
+   select.style.cssText=
+    "width:100%;padding:10px;border-radius:8px;background:#211735;color:white;";
+
+   const padrao=document.createElement("option");
+   padrao.value="Membro";
+   padrao.textContent="Membro";
+   select.appendChild(padrao);
+
+   servidor.roles.forEach((cargo)=>{
+    const opcao=document.createElement("option");
+    opcao.value=cargo.name;
+    opcao.textContent=cargo.name;
+    select.appendChild(opcao);
+   });
+
+   select.value=m.role||"Membro";
+
+   select.onchange=()=>{
+    m.role=select.value;
+    save();
+   };
+
+   item.appendChild(select);
+   lista.appendChild(item);
+  });
+ }
+
+ caixa.querySelector(".confirm-no").onclick=()=>{
+  caixa.remove();
+ };
+
+ caixa.querySelector(".confirm-yes").onclick=()=>{
+  const nome=campo.value.trim();
+
+  if(!nome)return;
+
+  servidor.members.push({
+   id:"m_"+Date.now(),
+   name:nome,
+   role:"Membro"
+  });
+
+  save();
+  campo.value="";
+  atualizarLista();
+ };
+
+ atualizarLista();
+     }function abrirCargos(){
+ if(!currentServer)return;
+
+ const caixa=document.createElement("div");
+ caixa.className="confirm-box";
+
+ caixa.innerHTML=`
+  <h3>Criar cargo 👑</h3>
+  <p>Digite o nome do novo cargo:</p>
+  <input class="cargo-input" placeholder="Nome do cargo"
+   maxlength="25">
+  <p class="cargo-erro"></p>
+  <button class="confirm-yes">CRIAR</button>
+  <button class="confirm-no">CANCELAR</button>
+ `;
+
+ document.body.appendChild(caixa);
+
+ const campo=caixa.querySelector(".cargo-input");
+ const erro=caixa.querySelector(".cargo-erro");
+
+ campo.style.cssText=
+  "width:90%;padding:12px;border-radius:8px;margin:10px 0;";
+
+ caixa.querySelector(".confirm-no").onclick=()=>{
+  caixa.remove();
+ };
+
+ caixa.querySelector(".confirm-yes").onclick=()=>{
+  const cargo=campo.value.trim();
+
+  if(!cargo){
+   erro.textContent="Digite um nome para o cargo!";
+   return;
+  }
+
+  if(!Array.isArray(currentServer.roles)){
+   currentServer.roles=[];
+  }
+
+  currentServer.roles.push({
+   id:"r_"+Date.now(),
+   name:cargo.slice(0,25)
+  });
+
+  save();
+  caixa.remove();
+
+  alert("Cargo criado: "+cargo);
+ };
+}
+// INICIALIZAÇÃO
+
+if(data.nickname){
+ document.getElementById("profileName").value=data.nickname;
+}
+
+renderComunidades();
+save();
+</script>
+
+</body>
+</html>
