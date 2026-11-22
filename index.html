@@ -362,7 +362,14 @@ button:active{opacity:.8}
 <!-- PERFIL -->
 <section id="profile" class="page">
  <h2>👤 Meu perfil</h2>
- <div class="panel">
+<div class="panel">
+  <h3>🔐 Minha conta</h3>
+  <input id="emailConta" type="email" placeholder="Seu e-mail">
+  <input id="senhaConta" type="password" placeholder="Sua senha">
+  <button class="primary" onclick="criarConta()">Criar conta</button>
+  <button class="primary" onclick="entrarConta()">Entrar</button>
+  <p id="mensagemConta"></p>
+</div> <div class="panel">
   <h3>Seu apelido</h3>
   <input id="profileName" maxlength="20" placeholder="Digite seu apelido">
   <button class="primary" onclick="salvarPerfil()">Salvar perfil</button>
@@ -984,5 +991,83 @@ renderComunidades();
 save();
 </script>
 
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
+
+  import { getFirestore } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+
+  import {
+    getAuth,
+    createUserWithEmailAndPassword,
+    signInWithEmailAndPassword,
+    sendEmailVerification,
+    signOut
+  } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDIAFfSHQ2QlW5Zcq5Pf4dS6UXDzqiV0to",
+    authDomain: "texugo-do-mel.firebaseapp.com",
+    projectId: "texugo-do-mel",
+    storageBucket: "texugo-do-mel.firebasestorage.app",
+    messagingSenderId: "388362650222",
+    appId: "1:388362650222:web:7ccba2c5565cc2e3e29c7f"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  const auth = getAuth(app);
+
+  // CRIAR CONTA
+  window.criarConta = async function() {
+    const email = document.getElementById("emailConta").value.trim();
+    const senha = document.getElementById("senhaConta").value;
+    const msg = document.getElementById("mensagemConta");
+
+    try {
+      const credencial = await createUserWithEmailAndPassword(
+        auth, email, senha
+      );
+
+      await sendEmailVerification(credencial.user);
+
+      msg.textContent =
+        "Conta criada! Confira seu e-mail para verificar sua conta.";
+
+      await signOut(auth);
+
+    } catch (erro) {
+      msg.textContent = "Erro: " + erro.message;
+    }
+  };
+
+  // ENTRAR NA CONTA
+  window.entrarConta = async function() {
+    const email = document.getElementById("emailConta").value.trim();
+    const senha = document.getElementById("senhaConta").value;
+    const msg = document.getElementById("mensagemConta");
+
+    try {
+      const credencial = await signInWithEmailAndPassword(
+        auth, email, senha
+      );
+
+      if (!credencial.user.emailVerified) {
+        await signOut(auth);
+        msg.textContent =
+          "Verifique seu e-mail antes de entrar!";
+        return;
+      }
+
+      msg.textContent = "Login realizado com sucesso!";
+      msg.textContent = "Login realizado com sucesso!";
+
+    } catch (erro) {
+      msg.textContent = "Erro: " + erro.message;
+    }
+  };
+
+  console.log("GAME HUB conectado ao Firebase!");
+
+</script>
 </body>
 </html>
